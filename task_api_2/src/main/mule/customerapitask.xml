@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+    <http:listener-config name="customerapitask-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="customerapitask-config" api="resource::e3518901-d1b0-4820-b141-ca5dca361b46:customer:1.0.2:raml:zip:customerapitask.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <ftp:config name="FTP_Config" doc:name="FTP Config" doc:id="a91ddc5f-6191-4a15-a1d4-dc05ab04f2b8" >
+		<ftp:connection host="ftp.dlptest.com" username="dlpuser" password="rNrKYTX9g7z3RgJRmxWuGHbeu" />
+	</ftp:config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="5cabe12b-3e36-484d-bca8-f298ef18214a" >
+		<email:smtp-connection host="pop.gmail.com" port="995" user="user@domain.com" password="password"/>
+	</email:smtp-config>
+	<flow name="customerapitask-main">
+        <http:listener config-ref="customerapitask-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="customerapitask-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="customerapitask-console">
+        <http:listener config-ref="customerapitask-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="customerapitask-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\customerDetails:application\json:customerapitask-config">
+        <try doc:name="Try" doc:id="91a7b572-ac7f-49ce-b91d-91372f1cf6af" >
+			<async doc:name="Async" doc:id="214d8b8a-3e92-43ed-802e-63aec947cda8">
+			<ee:transform doc:name="JSON_CSV_Mapping" doc:id="5b1d825b-2f8a-40f9-86f1-667dcbcbe134">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+{
+   
+    AngelegtAm:payload.AngelegtAm as DateTime as String {format: "d.m.y KK:mm:ss"},
+    GeaendertAm:payload.GeaendertAm as DateTime as String {format: "d.m.y KK:mm:ss"},
+    Anrede:payload.Anrede,
+    Name:payload.Name,
+    "Straße":payload."Straße",
+    Land:payload.Land,
+    Postleitzahl:payload.Postleitzahl,
+    Ort:payload.Ort,
+	GeborenAm:payload.GeborenAm as Date as String {format: "dd.MM.yyyy"} ,
+	Zuzahlungsbefreiung:if(payload.Zuzahlungsbefreiung ==false) "0"  else "1" ,
+	Patientenerklaerung:if(payload.Patientenerklaerung ==false)"0" else "1"
+}    ]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<ftp:write doc:name="WriteFile" doc:id="a4af37d7-31b7-40cf-a8e9-86622fd6d1dc" config-ref="FTP_Config" path="/IMTask/Done/SuccessOutput.csv" />
+		</async>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b80ecb07-a9b6-454a-bfbd-e477f06e2f46" >
+					<ee:transform doc:name="Load_Error" doc:id="7c7b9872-8457-47af-accc-a748b3d599e7" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	(payload),"Error Description":error.description
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<email:send doc:name="Send_Email" doc:id="29913e07-2ed3-4427-9731-3b9f435a4e6e" config-ref="Email_SMTP" fromAddress="xyz@domain.com">
+						<email:to-addresses />
+					</email:send>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  Message: "CSV file uploaded successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3a29c264-a7d8-46c9-8c87-66749fb4139d" />
+    </flow>
+</mule>

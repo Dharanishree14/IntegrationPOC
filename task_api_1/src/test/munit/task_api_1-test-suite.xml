@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="task_api_1-test-suite.xml" />
+	<munit:test name="task_api_1-test-suite-task_api_1FlowTest" doc:id="f0915530-9fa0-4261-b243-eeee9701a740" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="690f1e1f-71a6-4b27-a9a6-40a0b436afed" processor="ftp:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Read_InputData" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="3e60acc5-84f7-48e3-8b29-fc13faf7ca47" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;	"Mandant": "100",&#10;	"Kundennummer": "001",&#10;	"AngelegtAm": "2020-03-26T13:42:53Z",&#10;	"GeaendertAm": "2020-03-26T13:42:53Z",&#10;	"Anrede": "Herr",&#10;	"Name1": "Max Mustermann",&#10;	"Betriebsstaette": "HQ",&#10;	"VANummer": "DE1234567890",&#10;	"Fachrichtung": "IT",&#10;	"Straße": "Hüttenstrasse 50",&#10;	"Land": "Deutschland",&#10;	"Postleitzahl": "45527",&#10;	"Ort": "Hattingen",&#10;	"DSStatus": 1,&#10;	"FachrichtungLOV": "Beratung",&#10;	"LANummer": "laNummer",&#10;	"InstTyp": "instTyp",&#10;	"InstName": "instName",&#10;	"MaveName": "maveName",&#10;	"GeborenAm": "2005-05-17",&#10;	"PatientStatus": "aktiv",&#10;	"Zuzahlungsbefreiung": "nein",&#10;	"Patientenerklaerung": "nein",&#10;	"Pflegestufe": "1",&#10;	"Status": 0,&#10;	"IstVerstorben": false,&#10;	"IstKunde": true,&#10;	"IstVerordner": false,&#10;	"Hauptvermittler": "F/S"&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="b58381ce-9762-4d0b-8253-3d86dd0858ba" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Send_Request" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="f73d58ed-2ec0-449b-b6b1-36e9814d16cf" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[payload]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="5d3b055e-c092-4a47-b489-75e43ef7c437" />
+			<flow-ref doc:name="Flow-ref to task_api_1Flow" doc:id="41ca5e2e-bd3b-4508-a1f2-56023e8c63a3" name="task_api_1Flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="d80067c7-c376-4c22-baf5-3278e9f751e1" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

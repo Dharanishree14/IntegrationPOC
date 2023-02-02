@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<ftp:config name="FTP_Config" doc:name="FTP Config" doc:id="73dc34e0-871d-4fc3-ba6b-67dce6a9838e" >
+		<ftp:connection host="ftp.dlptest.com" username="dlpuser" password="rNrKYTX9g7z3RgJRmxWuGHbeu" />
+	</ftp:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="3a4fd19f-67c6-443e-bff0-b803d2cf6cc7" >
+		<http:request-connection host="localhost" port="8082" />
+	</http:request-config>
+	<flow name="task_api_1Flow" doc:id="83303121-4bfb-4ed9-8489-07294d7fa231" >
+		<scheduler doc:name="Scheduler" doc:id="79639d21-7bd6-461c-97f3-888ce4b467f8" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="5" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ftp:read doc:name="Read_InputData" doc:id="3e60acc5-84f7-48e3-8b29-fc13faf7ca47" config-ref="FTP_Config" path="/IMTask/Input/kunde.json"/>
+		<ee:transform doc:name="Mapping_Data" doc:id="c9ae0ad4-8469-421c-82b3-f3b0d3c06376" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "Name": payload.Name1,
+    "Anrede": payload.Anrede,
+    "AngelegtAm": payload.AngelegtAm as DateTime,
+    "GeaendertAm": payload.GeaendertAm as DateTime,
+    "Straße": payload."Straße",
+    "Postleitzahl": payload.Postleitzahl,
+    "Ort": payload.Ort,
+    "Land": payload.Land,
+    "GeborenAm": payload.GeborenAm as Date,
+    "Zuzahlungsbefreiung": if(payload.Zuzahlungsbefreiung=="nein")false  else true, 
+    "Patientenerklaerung": if(payload.Patientenerklaerung=="nein")false else true
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<try doc:name="Try" doc:id="99757c6e-f787-445e-b69e-3dcdc397fba3" >
+			<http:request method="POST" doc:name="Send_Request" doc:id="f73d58ed-2ec0-449b-b6b1-36e9814d16cf" config-ref="HTTP_Request_configuration" path="/api/customerDetails"/>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="76ce530d-1654-4bf4-ad2b-981b56dc40cb" >
+					<ee:transform doc:name="Transform Message" doc:id="92199949-8ccd-4aff-b032-10b8f5b586c0" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	(payload),"Error Description":error.description
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<ftp:write doc:name="Write_ErrorFile" doc:id="4cd7b33a-6a2b-4b10-abf9-cd6e6b0f5055" config-ref="FTP_Config" path="/IMTask/Error/ErrorOutput.json"/>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="b4cc3050-7964-4d0e-8a1c-24af2730930f" />
+	</flow>
+</mule>
