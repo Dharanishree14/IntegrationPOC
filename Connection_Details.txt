@@ -1,0 +1,9 @@
+FTP URL: ftp.dlptest.com 
+FTP User: dlpuser
+Password: rNrKYTX9g7z3RgJRmxWuGHbeu
+
+/IMTask/Input/kunde.json
+/IMTask/Error/ErrorOutput.json
+/IMTask/Done/SuccessOutput.json
+
+https://github.com/Dharanishree14/IntegrationPOC.git
