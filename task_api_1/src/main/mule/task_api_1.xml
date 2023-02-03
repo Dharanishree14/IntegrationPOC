@@ -10,7 +10,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		<ftp:connection host="ftp.dlptest.com" username="dlpuser" password="rNrKYTX9g7z3RgJRmxWuGHbeu" />
 	</ftp:config>
 	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="3a4fd19f-67c6-443e-bff0-b803d2cf6cc7" >
-		<http:request-connection host="localhost" port="8082" />
+		<http:request-connection host="localhost" port="8081" />
 	</http:request-config>
 	<flow name="task_api_1Flow" doc:id="83303121-4bfb-4ed9-8489-07294d7fa231" >
 		<scheduler doc:name="Scheduler" doc:id="79639d21-7bd6-461c-97f3-888ce4b467f8" >

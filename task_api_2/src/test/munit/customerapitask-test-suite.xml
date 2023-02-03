@@ -8,17 +8,152 @@
 		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
 		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
 	<munit:config name="customerapitask-test-suite.xml" />
-	<munit:test name="customerapitask-test-suite-post:\customerDetails:application\json:customerapitask-configTest" doc:id="4290de86-f49c-45bb-b052-85c6fa217e89" description="Test">
-		<munit:behavior>
-			<munit-tools:mock-when doc:name="Mock when" doc:id="3c3d2011-c5a1-406f-8a6e-5aa5d1d10c39" />
-			<munit-tools:mock-when doc:name="Mock when" doc:id="6a7906bd-2ec7-4158-8d95-ca37d8db1f92" />
-		</munit:behavior>
+	<munit:test name="customerapitask-test-suiteTest_Success" doc:id="3d347f09-3f68-44d8-a5d3-cde482d1761b" >
 		<munit:execution >
-			<munit:set-event doc:name="Set Event" doc:id="e8016c4d-c6fb-48a1-8402-8eda6b423770" />
-			<flow-ref doc:name="Flow-ref to post:\customerDetails:application\json:customerapitask-config" doc:id="5943f4e0-88c1-412e-8ebd-a9005db109cd" name="post:\customerDetails:application\json:customerapitask-config"/>
+			<munit:set-event doc:name="Set Event" doc:id="d88a5741-f7e7-4d5b-861b-cba14c72691e" >
+				<munit:payload value='#[ &#10;output application/json&#10;---&#10;{&#10;  "AngelegtAm": "2020-03-26T13:42:53Z",&#10;  "GeaendertAm": "2020-03-26T13:42:53Z",&#10;  "Anrede": "Herr",&#10;  "Name": "Max Mustermann",&#10;  "Straße": "Hüttenstrasse 50",&#10;  "Land": "Deutschland",&#10;  "Postleitzahl": "45527",&#10;  "Ort": "Hattingen",&#10;  "GeborenAm": "2005-05-17",&#10;  "Zuzahlungsbefreiung": false,&#10;  "Patientenerklaerung": false&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow Reference" doc:id="90a16819-0fee-47c4-91bf-132d6b85c0df" name="post:\customerDetails:application\json:customerapitask-config"/>
 		</munit:execution>
 		<munit:validation >
-			<munit-tools:assert-that doc:name="Assert that" doc:id="6031d6c8-892a-46db-b29d-fcfac0a1eb4f" is="#[MunitTools::notNullValue()]"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="585e7342-47bf-4002-a0b9-1a3ba22089ea" is="#[MunitTools::notNullValue()]" expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="customerapitask-test-suiteTest_APIKitError_3" doc:id="6f9e12b2-a791-4c58-a105-5fbc3b4aedf7" expectedErrorType="APIKIT:METHOD_NOT_ALLOWED">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="3fd17712-5425-4696-82bb-aa717efebe68" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="customerapitask-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="c3e0a910-7fd0-4037-a188-f881b1b7b43d" name="customerapitask-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="0a4a2a06-e61e-4816-b580-2b932dd11dde" is="#[MunitTools::notNullValue()]" expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="customerapitask-test-suiteTest_Error_404" doc:id="2e5346ae-3b10-4898-ba9d-62ada3fab329" expectedErrorType="APIKIT:NOT_FOUND">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="357e02b7-3bdb-4868-8cf7-7c00892b933b" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="customerapitask-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_FOUND" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="01835746-4e16-4598-8787-4d9606e77e61" name="customerapitask-main"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="e8d75fb9-0ad7-4f27-9200-bc5480614f87" expression="#[payload]" is="#[MunitTools::notNullValue()]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="customerapitask-test-suiteTest_APIKITError_4" doc:id="87453b49-e69f-4d26-8cf7-94067aa9c780" expectedErrorType="APIKIT:NOT_ACCEPTABLE">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="76a46e85-9915-4d59-bbc2-7543f51c10d9" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="customerapitask-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_ACCEPTABLE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="f6f15ba1-e892-4eb0-840f-78ad6faece84" name="customerapitask-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="731dfac5-c1dd-49ef-890d-36296be636ed" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="customerapitask-test-suiteTest_APIKITError_6" doc:id="40aa9ba6-86ab-40c8-af11-642bdace6ef2" expectedErrorType="APIKIT:NOT_IMPLEMENTED">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="7a785315-1053-4300-beaf-92cee65080dc" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="customerapitask-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:NOT_IMPLEMENTED" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="4bc36a88-7562-4a49-9457-807e9a0faba2" name="customerapitask-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="67c78d1d-06be-4dee-9fc9-3c349f66c88b" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="customerapitask-test-suiteTest_Errortest" doc:id="c534ab80-eb9a-4623-855f-c25117a9aad3" expectedErrorType="FTP:CONNECTIVITY">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="f81d3fb4-74a4-449f-a420-a1d386c89d97" processor="ftp:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="WriteFile" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="a4af37d7-31b7-40cf-a8e9-86622fd6d1dc" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[&#10;{&#10;  "AngelegtAm": "2020-03-26T13:42:53Z",&#10;  "GeaendertAm": "2020-03-26T13:42:53Z",&#10;  "Anrede": "Herr",&#10;  "Name": "Max Mustermann",&#10;  "Straße": "Hüttenstrasse 50",&#10;  "Land": "Deutschland",&#10;  "Postleitzahl": "45527",&#10;  "Ort": "Hattingen",&#10;  "GeborenAm": "2005-05-17",&#10;  "Zuzahlungsbefreiung": false,&#10;  "Patientenerklaerung": false&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="119a1ca9-c9eb-42db-bf23-5fb2ccd8ab11" processor="email:send">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Send_Email" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="29913e07-2ed3-4427-9731-3b9f435a4e6e" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="FTP:CONNECTIVITY" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="f9b05719-2008-4dbd-a1c0-d921dbad7fdf" />
+			<flow-ref doc:name="Flow Reference" doc:id="2606f3f8-2c29-4a56-a598-51a5c8bb2501" name="post:\customerDetails:application\json:customerapitask-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="4d4cf098-1bf3-4bc6-8145-2438538489d0" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="customerapitask-test-suiteTest_APIKITError_5" doc:id="e7ccbe0f-7fc1-4b66-8f94-a01c95c6b62d" expectedErrorType="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="bc57ae5d-4c2b-46a2-b007-9962b22a9819" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="customerapitask-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:UNSUPPORTED_MEDIA_TYPE" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow Reference" doc:id="8a409702-229d-45c7-87cb-1a5b558e74ac" name="customerapitask-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="87384bf3-e50d-47ad-8166-897e2ce7c3f8" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="customerapitask-test-suite-customerapitask-Error400" doc:id="7c64f5d1-bc38-419b-94b6-ebd51cd6712f" description="Test" expectedErrorType="APIKIT:BAD_REQUEST">
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="4906a5d4-eab5-4414-b69c-1743efd86494" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="customerapitask-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to customerapitask-main" doc:id="5095b5d0-e1f2-4b3f-9e2d-5be0797af4e4" name="customerapitask-main"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="cbc47dca-7586-44eb-aff5-d2290b665fc3" actual="#[vars.httpStatus]" expected="#[400]"/>
 		</munit:validation>
 	</munit:test>
 
